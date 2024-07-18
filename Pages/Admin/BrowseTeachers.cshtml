@@ -1,0 +1,254 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Admin.BrowseTeachersModel
+@{
+}
+
+@Html.Partial("Admin/_ToolBar")
+
+<div class="mt-0">
+    <h3 class="text-center">All Teachers</h3>
+    <h5 class="text-center">In total @Model.Teachers.Count()</h5>
+</div>
+
+<div class="d-flex flex-wrap justify-content-center mt-3">
+    <!-- Pagination links -->
+    <ul class="pagination me-3">
+        <li class="page-item">
+            <a class="page-link" href="/Admin/BrowseTeachers?pageSize=@Model.PageSize&currentPage=@Math.Max(Model.CurrentPage - 1, 1)">Previous</a>
+        </li>
+        @for (int i = 1; i <= @Model.TotalPages; i++)
+        {
+            <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                <a class="page-link" href="/Admin/BrowseTeachers?pageSize=@Model.PageSize&currentPage=@i">@i</a>
+            </li>
+        }
+        <li class="page-item">
+            <a class="page-link" href="/Admin/BrowseTeachers?pageSize=@Model.PageSize&currentPage=@Math.Min(Model.CurrentPage + 1, Model.TotalPages)">Next</a>
+        </li>
+    </ul>
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            Users per page
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/Admin/BrowseTeachers?pageSize=1&currentPage=1">1</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseTeachers?pageSize=2&currentPage=1">2</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseTeachers?pageSize=5&currentPage=1">5</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseTeachers?pageSize=10&currentPage=1">10</a></li>
+        </ul>
+    </div>
+    <div>
+        <button class="btn btn-success ms-3" data-bs-toggle="modal" data-bs-target="#teacherModalAdd">Add New Teacher</button>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        @foreach (var user in @Model.Teachers)
+        {
+            <div class="col-md-12 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <h5><i class="fa-solid fa-envelope"></i> @user.Email</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="editTeacher(@user.Id)">Edit User</button>
+                            </div>
+                            <div class="col-md-2" title="Name">
+                                <p><i class="fa-solid fa-user"></i> @user.FirstName @user.LastName</p>
+                            </div>
+                            <div class="col-md-2" title="Address">
+                                <p><i class="fa-solid fa-address-book"></i> @user.Address</p>
+                            </div>
+                            <div class="col-md-2">
+                                <p><i class="fa-solid fa-calendar-plus" title="Added on"></i> @user.AddedOn.ToString("yyyy-MM-dd")</p>
+                            </div>
+                            <div class="col-md-2" title="EGN">
+                                <p><i class="fa-solid fa-id-card"></i> @user.EGN</p>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn @(user.Active ? "btn-success" : "btn-danger")" onclick="toggleStatus(@user.Id, @(user.Active ? "false" : "true"))">
+                                    @(user.Active ? "Active" : "Inactive")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal for Add teacher -->
+<div class="modal fade" id="teacherModalAdd" tabindex="-1" aria-labelledby="teacherModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="teacherModalLabel">Add Teacher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="teacherFormAdd">
+                    <div class="mb-3">
+                        <label for="emailAdd" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="emailAdd" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordAdd" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="passwordAdd" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="firstNameAdd" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstNameAdd" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastNameAdd" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastNameAdd" required>
+                    </div>
+                    <div class="modal-footerAdd">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Edit teacher -->
+<div class="modal fade" id="teacherModalEdit" tabindex="-1" aria-labelledby="teacherModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="teacherModalLabel">Edit Teacher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="teacherFormEdit">
+                    <input type="hidden" id="teacherId" />
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="egn" class="form-label">EGN</label>
+                        <input type="text" class="form-control" id="egn" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Function to handle adding a new teacher
+        $('#teacherFormAdd').submit(function (e) {
+            e.preventDefault();
+
+            var data = {
+                Email: $('#emailAdd').val(),
+                Password: $('#passwordAdd').val(),
+                FirstName: $('#firstNameAdd').val(),
+                LastName: $('#lastNameAdd').val()
+            };
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseTeachers", new { handler = "AddTeacher" })',
+                data: data,
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert('Error ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        // Function to handle the modification of a teacher
+        $('#teacherFormEdit').submit(function (e) {
+            e.preventDefault();
+
+            var teacherId = $('#teacherId').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseTeachers", new { handler = "EditTeacher" })',
+                data: {
+                    Id: teacherId,
+                    Email: $('#email').val(),
+                    FirstName: $('#firstName').val(),
+                    LastName: $('#lastName').val(),
+                    egn: $('#egn').val()
+                },
+                success: function (response) {
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        // Function to populate the modal for editing teacher
+        function editTeacher(userId) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseTeachers", new { handler = "GetTeacher" })',
+                data: { id: userId },
+                success: function (response) {
+                    $('#teacherId').val(response.id);
+                    $('#email').val(response.email);
+                    $('#firstName').val(response.firstName);
+                    $('#lastName').val(response.lastName);
+                    $('#egn').val(response.egn);
+                    $('#teacherModalEdit').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        function toggleStatus(userId, newStatus) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseTeachers", new { handler = "ToggleStatus" })',
+                data: {
+                    userId: userId,
+                    isActive: newStatus
+                },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+    </script>
+}

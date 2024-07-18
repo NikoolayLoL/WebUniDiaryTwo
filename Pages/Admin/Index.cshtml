@@ -1,0 +1,22 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Admin.IndexModel
+@{
+}
+
+@Html.Partial("Admin/_ToolBar")
+
+@if (Model.successMessage.Length > 0)
+{
+    <div class="alert alert-success alert-dismissible position-fixed" style="width: 100%;" role="alert">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        @Model.successMessage
+    </div>
+}
+
+@if (Model.failureMessage.Length > 0)
+{
+    <div class="alert alert-danger alert-dismissible position-fixed" style="width: 100%;" role="alert">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        @Model.failureMessage
+    </div>
+}

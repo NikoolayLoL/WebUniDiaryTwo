@@ -1,0 +1,297 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Admin.BrowseSubjectsModel
+@{
+}
+
+@Html.Partial("Admin/_ToolBar")
+
+<div class="mt-0">
+    <h3 class="text-center">All Subjects</h3>
+    <h5 class="text-center">In total @Model.Subjects.Count()</h5>
+</div>
+
+<div class="d-flex flex-wrap justify-content-center mt-3">
+    <!-- Pagination links -->
+    <ul class="pagination me-3">
+        <li class="page-item">
+            <a class="page-link" href="/Admin/BrowseSubjects?pageSize=@Model.PageSize&currentPage=@Math.Max(Model.CurrentPage - 1, 1)">Previous</a>
+        </li>
+        @for (int i = 1; i <= @Model.TotalPages; i++)
+        {
+            <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                <a class="page-link" href="/Admin/BrowseSubjects?pageSize=@Model.PageSize&currentPage=@i">@i</a>
+            </li>
+        }
+        <li class="page-item">
+            <a class="page-link" href="/Admin/BrowseSubjects?pageSize=@Model.PageSize&currentPage=@Math.Min(Model.CurrentPage + 1, Model.TotalPages)">Next</a>
+        </li>
+    </ul>
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            Subjects per page
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/Admin/BrowseSubjects?pageSize=1&currentPage=1">1</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseSubjects?pageSize=2&currentPage=1">2</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseSubjects?pageSize=5&currentPage=1">5</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseSubjects?pageSize=10&currentPage=1">10</a></li>
+        </ul>
+    </div>
+    <div>
+        <button class="btn btn-success ms-3" data-bs-toggle="modal" data-bs-target="#subjectModalAdd">Add New Subject</button>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        @foreach (var subject in @Model.Subjects)
+        {
+            <div class="col-md-12 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <h5><i class="fa-solid fa-envelope"></i> @subject.Name</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="editSubject(@subject.Id)">Edit Subject</button>
+                            </div>
+                            <div class="col-md-2" title="Description">
+                                <p><i class="fa-solid fa-file-lines"></i> @subject.Description</p>
+                            </div>
+                            <div class="col-md-2" title="">
+                                <p><i class="fa-solid fa-address-book"></i> 
+                                    @{
+                                        var user = Model.Teachers.Find(x => x.Id == subject.PrimaryTeacherId);
+                                        if (user != null)
+                                        {
+                                            @(user.FirstName + " " + user.LastName);
+                                        }
+                                    }    
+                                </p>
+                            </div>
+                            <div class="col-md-2">
+                                <p><i class="fa-solid fa-calendar-plus" title=""></i> </p>
+                            </div>
+                            <div class="col-md-2" title="">
+                                <p><i class="fa-solid fa-id-card"></i> </p>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn @(subject.Active ? "btn-success" : "btn-danger")" onclick="toggleStatus(@subject.Id, @(subject.Active ? "false" : "true"))">
+                                    @(subject.Active ? "Active" : "Inactive")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal for Add subject -->
+<div class="modal fade" id="subjectModalAdd" tabindex="-1" aria-labelledby="subjectModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subjectModal">Add Subject</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="subjectFormAdd">
+                    <div class="mb-3">
+                        <label for="nameAdd" class="form-label">Name of Subject</label>
+                        <input type="text" class="form-control" id="nameAdd" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descriptionAdd" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="descriptionAdd" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="teacherInput">Teacher</label>
+                        <input type="text" id="teacherInput" class="form-control searchInput" placeholder="Enter email">
+                        <ul id="teacherSuggestions" class="list-group mt-2"></ul>
+                        <input type="hidden" id="teacherId">
+                    </div>
+                    <div class="form-group">
+                        <label for="substituteTeacherInput">Substitute Teacher</label>
+                        <input type="text" id="substituteTeacherInput" class="form-control searchInput" placeholder="Enter email">
+                        <ul id="substituteTeacherSuggestions" class="list-group mt-2"></ul>
+                        <input type="hidden" id="substituteTeacherId">
+                    </div>
+                    <div class="modal-footerAdd">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Edit subject -->
+<div class="modal fade" id="subjectModalEdit" tabindex="-1" aria-labelledby="subjectModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subjectModal">Edit Teacher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="subjectFormEdit">
+                    <input type="hidden" id="subjectId" />
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name of Subject</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="description" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Function to handle the modification of a subject
+        $('#subjectFormEdit').submit(function (e) {
+            e.preventDefault();
+
+            var subjectId = $('#subjectId').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSubjects", new { handler = "EditSubject" })',
+                data: {
+                    Id: subjectId,
+                    Name: $('#name').val(),
+                    Description: $('#description').val(),
+                },
+                success: function (response) {
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        // Function to populate the modal for editing subbject
+        function editSubject(subjectId) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSubjects", new { handler = "GetSubject" })',
+                data: { id: subjectId },
+                success: function (response) {
+                    $('#subjectId').val(response.id);
+                    $('#name').val(response.name);
+                    $('#description').val(response.description);
+                    $('#subjectModalEdit').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        function toggleStatus(subjectId, newStatus) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSubjects", new { handler = "ToggleStatus" })',
+                data: {
+                    subjectId: subjectId,
+                    isActive: newStatus
+                },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            let typingTimer;
+            const doneTypingInterval = 300; // time in ms
+
+            // Track typing in both input fields
+            $('.searchInput').on('keyup', function () {
+                clearTimeout(typingTimer);
+                const query = $(this).val();
+                const target = $(this).attr('id');
+                const suggestionsList = target === 'teacherInput' ? '#teacherSuggestions' : '#substituteTeacherSuggestions';
+
+                if (query.length >= 3) {
+                    typingTimer = setTimeout(function () {
+                        $.ajax({
+                            type: 'GET',
+                            url: '@Url.Page("/Admin/BrowseSubjects", new { handler = "GetEmail" })',
+                            data: { term: query },
+                            success: function (data) {
+                                $(suggestionsList).empty();
+                                data.forEach(email => {
+                                    $(suggestionsList).append('<li class="list-group-item list-group-item-action email-item" data-email="' + email.email + '" data-id="' + email.id + '">' + email.email + '</li>');
+                                });
+                            }
+                        });
+                    }, doneTypingInterval);
+                } else {
+                    $(suggestionsList).empty();
+                }
+            });
+
+            // Handle email selection
+            $(document).on('click', '.email-item', function () {
+                const email = $(this).data('email');
+                const id = $(this).data('id');
+                const target = $(this).closest('ul').attr('id');
+                const inputField = target === 'teacherSuggestions' ? '#teacherInput' : '#substituteTeacherInput';
+                const hiddenField = target === 'teacherSuggestions' ? '#teacherId' : '#substituteTeacherId';
+
+                $(inputField).val(email);
+                $(hiddenField).val(id);
+                $(this).closest('ul').empty();
+            });
+
+            // Function to handle adding a new subject
+            $('#subjectFormAdd').submit(function (e) {
+                e.preventDefault();
+
+                var data = {
+                    name: $('#nameAdd').val(),
+                    description: $('#descriptionAdd').val(),
+                    teacherId: $('#teacherId').val(),
+                    substituteTeacherId: $('#substituteTeacherId').val()
+                };
+
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Page("/Admin/BrowseSubjects", new { handler = "AddSubject" })',
+                    data: data,
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}
