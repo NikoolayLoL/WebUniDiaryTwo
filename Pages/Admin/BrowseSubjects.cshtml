@@ -68,8 +68,17 @@
                                     }    
                                 </p>
                             </div>
-                            <div class="col-md-2">
-                                <p><i class="fa-solid fa-calendar-plus" title=""></i> </p>
+                            <div class="col-md-2" title="">
+                                <p>
+                                    <i class="fa-solid fa-address-book"></i>
+                                    @{
+                                        var userSubstitude = Model.Teachers.Find(x => x.Id == subject.SubstituteTeacherId);
+                                        if (userSubstitude != null)
+                                        {
+                                            @(userSubstitude.FirstName + " " + userSubstitude.LastName);
+                                        }
+                                    }
+                                </p>
                             </div>
                             <div class="col-md-2" title="">
                                 <p><i class="fa-solid fa-id-card"></i> </p>
@@ -107,17 +116,17 @@
                     </div>
                     <div class="form-group">
                         <label for="teacherInput">Teacher</label>
-                        <input type="text" id="teacherInput" class="form-control searchInput" placeholder="Enter email">
+                        <input type="text" id="teacherInput" class="form-control searchInput mt-1" placeholder="Enter email">
                         <ul id="teacherSuggestions" class="list-group mt-2"></ul>
                         <input type="hidden" id="teacherId">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group mb-2 mt-2">
                         <label for="substituteTeacherInput">Substitute Teacher</label>
-                        <input type="text" id="substituteTeacherInput" class="form-control searchInput" placeholder="Enter email">
+                        <input type="text" id="substituteTeacherInput" class="form-control searchInput mt-1" placeholder="Enter email">
                         <ul id="substituteTeacherSuggestions" class="list-group mt-2"></ul>
                         <input type="hidden" id="substituteTeacherId">
                     </div>
-                    <div class="modal-footerAdd">
+                    <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Save changes</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
