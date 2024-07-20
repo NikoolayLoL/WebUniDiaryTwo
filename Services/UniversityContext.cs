@@ -125,6 +125,8 @@ namespace WebUniDiaryTwo.Services
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        // 8 to 10 most of the time
+        public int SemesterLenght { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
@@ -154,7 +156,8 @@ namespace WebUniDiaryTwo.Services
     {
         public int SemesterId { get; set; }
         public Semester Semester { get; set; }
-
+        // Semester IITB -> 2 (and IITB has a max of 8 for example)
+        public int SemesterLenghtId { get; set; }
         public int SubjectId { get; set; }
         public Subject Subject { get; set; }
     }

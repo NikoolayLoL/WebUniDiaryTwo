@@ -1,0 +1,325 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Admin.BrowseSemestersModel
+@{
+}
+
+@Html.Partial("Admin/_ToolBar")
+
+<div class="mt-0">
+    <h3 class="text-center">All Semesters</h3>
+    <h5 class="text-center">In total @Model.Semesters.Count()</h5>
+</div>
+
+<div class="d-flex flex-wrap justify-content-center mt-3">
+    <!-- Pagination links -->
+    <ul class="pagination me-3">
+        <li class="page-item">
+            <a class="page-link" href="/Admin/BrowseSemesters?pageSize=@Model.PageSize&currentPage=@Math.Max(Model.CurrentPage - 1, 1)">Previous</a>
+        </li>
+        @for (int i = 1; i <= @Model.TotalPages; i++)
+        {
+            <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                <a class="page-link" href="/Admin/BrowseSemesters?pageSize=@Model.PageSize&currentPage=@i">@i</a>
+            </li>
+        }
+        <li class="page-item">
+            <a class="page-link" href="/Admin/BrowseSemesters?pageSize=@Model.PageSize&currentPage=@Math.Min(Model.CurrentPage + 1, Model.TotalPages)">Next</a>
+        </li>
+    </ul>
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            Subjects per page
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/Admin/BrowseSemesters?pageSize=1&currentPage=1">1</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseSemesters?pageSize=2&currentPage=1">2</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseSemesters?pageSize=5&currentPage=1">5</a></li>
+            <li><a class="dropdown-item" href="/Admin/BrowseSemesters?pageSize=10&currentPage=1">10</a></li>
+        </ul>
+    </div>
+    <div>
+        <button class="btn btn-success ms-3" data-bs-toggle="modal" data-bs-target="#semesterModalAdd">Add New Semester</button>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        @foreach (var semester in @Model.Semesters)
+        {
+            <div class="col-md-12 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <h5>@semester.Name</h5>
+                                <p><i class="fa-solid fa-calendar-alt"></i> @semester.StartDate.ToString("yyyy-MM-dd") to @semester.EndDate.ToString("yyyy-MM-dd")</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><i class="fa-regular fa-note-sticky"></i> Semesters: @semester.SemesterLenght</p>
+                            </div>
+                            <div class="col-md-3 d-flex justify-content-end">
+                                <button class="btn btn-outline-primary btn-sm me-2" onclick="editSemester(@semester.Id)">Edit Semester</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="addSubjectModal(@semester.Id)">Add Subject</button>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#collapseSubjects-@semester.Id" aria-expanded="false" aria-controls="collapseSubjects-@semester.Id">
+                                    <i class="fa fa-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="collapseSubjects-@semester.Id" class="collapse">
+                        <div class="card-body">
+                            <ul class="list-group">
+                                @{
+                                    if (semester.SemesterSubjects != null)
+                                    {
+                                        foreach (var semesterSubject in semester.SemesterSubjects.OrderBy(x => x.SemesterLenghtId))
+                                        {
+                                            <li class="list-group-item d-flex justify-content-start align-items-center">
+                                                <span class="badge bg-primary me-3">@semesterSubject.SemesterLenghtId</span>
+                                                <span>@semesterSubject.Subject.Name</span>
+                                            </li>
+                                        }
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+
+<!-- Modal for Add Semester -->
+<div class="modal fade" id="semesterModalAdd" tabindex="-1" aria-labelledby="semesterModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="semesterModal">Add Semester</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="semesterFormAdd">
+                    <div class="mb-3">
+                        <label for="nameAdd" class="form-label">Name of Semester</label>
+                        <input type="text" class="form-control" id="nameAdd" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lenghtAdd" class="form-label">Number of Semesters</label>
+                        <input type="number" class="form-control" id="lenghtAdd" min="1" max="12" value="8" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Edit Semester -->
+<div class="modal fade" id="semesterModalEdit" tabindex="-1" aria-labelledby="semesterModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="semesterModal">Edit Semester</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="semesterFormEdit">
+                    <input id="semesterId" type="hidden" />
+                    <div class="mb-3">
+                        <label for="nameEdit" class="form-label">Name of Semester</label>
+                        <input type="text" class="form-control" id="nameEdit" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lenghtEdit" class="form-label">Number of Semesters</label>
+                        <input type="number" class="form-control" id="lenghtEdit" min="1" max="12" value="8" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add Subject -->
+<div class="modal fade" id="subjectModalAdd" tabindex="-1" aria-labelledby="subjectModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subjectModal">Add Subject</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="subjectFormAdd">
+                    <input type="hidden" id="semesterId" />
+                    <div class="mb-3">
+                        <label for="subjectSearch" class="form-label">Search Subject</label>
+                        <input type="text" class="form-control searchInput" id="subjectSearch" placeholder="Enter subject name" required>
+                        <ul id="subjectSuggestions" class="list-group mt-2"></ul>
+                        <input type="hidden" id="subjectId">
+
+                        <label for="semesterLenghtId" class="form-label">Which Semester</label>
+                        <input type="text" class="form-control searchInput" id="semesterLenghtId" placeholder="For which semester" min="1" max="12" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Function to handle adding a new semester
+        $('#semesterFormAdd').submit(function (e) {
+            e.preventDefault();
+
+            var data = {
+                name: $('#nameAdd').val(),
+                lenght: $('#lenghtAdd').val()
+            };
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSemesters", new { handler = "AddSemester" })',
+                data: data,
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert('Error ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        // Function to handle the modification of a semester
+        $('#semesterFormEdit').submit(function (e) {
+            e.preventDefault();
+            
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSemesters", new { handler = "EditSemester" })',
+                data: {
+                    id: $('#semesterId').val(),
+                    name: $('#nameEdit').val(),
+                    lenght: $('#lenghtEdit').val()
+                },
+                success: function (response) {
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        // Function to populate the modal for editing semester
+        function editSemester(semesterId) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSemesters", new { handler = "GetSemester" })',
+                data: { id: semesterId },
+                success: function (response) {
+                    $('#semesterId').val(response.id);
+                    $('#nameEdit').val(response.name);
+                    $('#lenghtEdit').val(response.lenght);
+                    $('#semesterModalEdit').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        function addSubjectModal(semesterId) {
+            $('#semesterId').val(semesterId);
+            $('#subjectModalAdd').modal('show');
+        }
+
+        // Add a Subject to an existing semester
+        $('#subjectFormAdd').submit(function (e) {
+            e.preventDefault();
+
+            var data = {
+                semesterId: $('#semesterId').val(),
+                subjectId: $('#subjectId').val(),
+                semesterLenghtId: $('#semesterLenghtId').val()
+            };
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseSemesters", new { handler = "AddSubject" })',
+                data: data,
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Error ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            let typingTimer;
+            const doneTypingInterval = 300; // time in ms
+
+            // Track typing in the subject search input field
+            $('#subjectSearch').on('keyup', function () {
+                clearTimeout(typingTimer);
+                const query = $(this).val();
+
+
+                if (query.length >= 3) {
+                    typingTimer = setTimeout(function () {
+                        $.ajax({
+                            type: 'GET',
+                            url: '@Url.Page("/Admin/BrowseSemesters", new { handler = "GetSubject" })',
+                            data: { term: query },
+                            success: function (data) {
+                                $('#subjectSuggestions').empty();
+                                data.forEach(subject => {
+                                    $('#subjectSuggestions').append('<li class="list-group-item list-group-item-action subject-item" data-id="' + subject.id + '">' + subject.name + '</li > ');
+                                });
+                            }
+                        });
+                    }, doneTypingInterval);
+                } else {
+                    $('#subjectSuggestions').empty();
+                }
+            });
+
+            // Handle subject selection
+            $(document).on('click', '.subject-item', function () {
+                const name = $(this).text();
+                const id = $(this).data('id');
+
+                $('#subjectSearch').val(name);
+                $('#subjectId').val(id);
+                $('#subjectSuggestions').empty();
+            });
+        });
+    </script>
+}
