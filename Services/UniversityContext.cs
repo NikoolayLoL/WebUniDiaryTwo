@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace WebUniDiaryTwo.Services
 {
+    // SQL SERVER sa Pass123@ -> DESKTOP-EFMVR16\SQLEXPRESS 54819
     public class UniversityContext : DbContext
     {
         public DbSet<User> Users { get; set; }
