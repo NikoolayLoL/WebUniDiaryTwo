@@ -1,0 +1,193 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Admin.BrowseGradesModel
+@{
+}
+
+@Html.Partial("Admin/_ToolBar")
+
+<div class="mt-0">
+    <h3 class="text-center">@Model.SSubject.Subject.Name - @Model.SSubject.Semester.Name</h3>
+</div>
+
+<div class="container mt-3">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Email</th>
+                <th>Current Grades</th>
+                <th>New Grade</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var semesterUser in Model.SSubject.Semester.SemesterUsers)
+            {
+                <tr>
+                    <td>@semesterUser.User.FirstName @semesterUser.User.LastName</td>
+                    <td>@semesterUser.User.Email</td>
+                    <td>
+                        @{
+                            if (Model.Grades.Count != 0)
+                            {
+                                @foreach (var grade in Model.Grades)
+                                {
+                                    if (grade.SemesterUserId == semesterUser.Id)
+                                    {
+                                        <span>@grade.GradeValue (@grade.Type)</span>
+                                        <br />
+                                    }
+                                }
+                            }
+                        }
+                    </td>
+                    <td>
+                        <input type="text" name="GradeType-@semesterUser.Id" class="form-control" id="GradeType-@semesterUser.Id" placeholder="Grade Type" />
+                        <input type="number" name="GradeValue-@semesterUser.Id" class="form-control" id="GradeValue-@semesterUser.Id" placeholder="Grade Value" min="2" max="6" />
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="submitGrade(@semesterUser.Id, @Model.SSubject.Subject.Id)">Submit Grade</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStudentModal">Add Student</button>
+</div>
+
+<!-- Modal for Add Student -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStudentModalLabel">Add Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    <div class="mb-3">
+                        <label for="studentSearch" class="form-label">Search Student by Email</label>
+                        <input type="text" class="form-control" id="studentSearch" placeholder="Enter email" required>
+                        <ul id="studentSuggestions" class="list-group mt-2"></ul>
+                        <input type="hidden" id="studentId">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Student</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#gradesForm').submit(function (e) {
+                e.preventDefault();
+
+                var data = $(this).serialize();
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Page("/Admin/BrowseGrades", new { handler = "AddGrades" })',
+                    data: data,
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error: ' + error);
+                    }
+                });
+            });
+
+            $('#addStudentForm').submit(function (e) {
+                e.preventDefault();
+
+                var studentId = $('#studentId').val();
+                var semesterId = @Model.SSubject.SemesterId;
+
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Page("/Admin/BrowseGrades", new { handler = "AddStudent" })',
+                    data: { studentId: studentId, semesterId: semesterId },
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error: ' + error);
+                    }
+                });
+            });
+
+            let typingTimer;
+            const doneTypingInterval = 300; // time in ms
+
+            $('#studentSearch').on('keyup', function () {
+                clearTimeout(typingTimer);
+                const query = $(this).val();
+
+                if (query.length >= 3) {
+                    typingTimer = setTimeout(function () {
+                        $.ajax({
+                            type: 'GET',
+                            url: '@Url.Page("/Admin/BrowseGrades", new { handler = "GetStudents" })',
+                            data: { term: query },
+                            success: function (data) {
+                                $('#studentSuggestions').empty();
+                                data.forEach(student => {
+                                    $('#studentSuggestions').append('<li class="list-group-item list-group-item-action student-item" data-email="' + student.email + '" data-id="' + student.id + '">' + student.email + '</li>');
+                                });
+                            }
+                        });
+                    }, doneTypingInterval);
+                } else {
+                    $('#studentSuggestions').empty();
+                }
+            });
+
+            $(document).on('click', '.student-item', function () {
+                const email = $(this).data('email');
+                const id = $(this).data('id');
+                $('#studentSearch').val(email);
+                $('#studentId').val(id);
+                $('#studentSuggestions').empty();
+            });
+        });
+
+        function submitGrade(semesterUserId, subjectId) {
+            var gradeValue = $(`#GradeValue-${semesterUserId}`).val();
+            var gradeType = $(`#GradeType-${semesterUserId}`).val();
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Admin/BrowseGrades", new { handler = "AddGrades" })',
+                data: {
+                    semesterUserId: semesterUserId,
+                    subjectId: subjectId,
+                    gradeValue: gradeValue,
+                    gradeType: gradeType
+                },
+                success: function (response) {
+                    if (response.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Error ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+    </script>
+}

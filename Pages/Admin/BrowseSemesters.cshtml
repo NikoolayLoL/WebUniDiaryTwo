@@ -79,6 +79,7 @@
                                             <li class="list-group-item d-flex justify-content-start align-items-center">
                                                 <span class="badge bg-primary me-3">@semesterSubject.SemesterLenghtId</span>
                                                 <span>@semesterSubject.Subject.Name</span>
+                                                <button class="btn btn-sm btn-warning border-1 border-secondary ms-auto" onclick="subjectSpecialty(@semesterSubject.SemesterId, @semesterSubject.SubjectId)" >View Subject</button>
                                             </li>
                                         }
                                     }
@@ -254,6 +255,10 @@
         function addSubjectModal(semesterId) {
             $('#semesterId').val(semesterId);
             $('#subjectModalAdd').modal('show');
+        }
+
+        function subjectSpecialty(semesterId, subjectId) {
+            window.location.href = `/Admin/BrowseGrades?semesterId=${semesterId}&subjectId=${subjectId}`;
         }
 
         // Add a Subject to an existing semester

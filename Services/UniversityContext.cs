@@ -14,6 +14,7 @@ namespace WebUniDiaryTwo.Services
         public DbSet<Grade> Grades { get; set; }
         public DbSet<Formula> Formulas { get; set; }
         public DbSet<SemesterSubject> SemesterSubjects { get; set; }
+        public DbSet<SemesterUser> SemesterUsers { get; set; }
 
         public UniversityContext(DbContextOptions<UniversityContext> options)
             : base(options)
@@ -52,16 +53,16 @@ namespace WebUniDiaryTwo.Services
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Grade>()
-                .HasOne(g => g.Student)
-                .WithMany(u => u.Grades)
-                .HasForeignKey(g => g.StudentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Grade>()
                 .HasOne(g => g.Subject)
                 .WithMany(s => s.Grades)
                 .HasForeignKey(g => g.SubjectId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Grade>()
+                .HasOne(g => g.SemesterUser)
+                .WithMany(su => su.Grades)
+                .HasForeignKey(g => g.SemesterUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Formula>()
                 .HasOne(f => f.Subject)
@@ -131,6 +132,7 @@ namespace WebUniDiaryTwo.Services
         public DateTime EndDate { get; set; }
 
         public ICollection<SemesterSubject> SemesterSubjects { get; set; }
+        public ICollection<SemesterUser> SemesterUsers { get; set; }
     }
 
     public class Subject
@@ -162,14 +164,26 @@ namespace WebUniDiaryTwo.Services
         public Subject Subject { get; set; }
     }
 
+    public class SemesterUser
+    {
+        public int Id { get; set; }
+        public int SemesterId { get; set; }
+        public Semester Semester { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
+
+        public ICollection<Grade> Grades { get; set; }
+    }
+
     public class Grade
     {
         public int Id { get; set; }
-        public int StudentId { get; set; }
-        public User Student { get; set; }
+        public int SemesterUserId { get; set; }
+        public SemesterUser SemesterUser { get; set; }
         public int SubjectId { get; set; }
         public Subject Subject { get; set; }
         public decimal GradeValue { get; set; }
+        public string Type { get; set; } = string.Empty;
         public DateTime DateRecorded { get; set; }
     }
 

@@ -141,6 +141,7 @@ namespace WebUniDiaryTwo.Pages.Admin
 
         public IActionResult OnGetAddSubject(int semesterId, int subjectId, int semesterLenghtId)
         {
+            // TODO - add active flag and if the user has deactivated it, and then wants to re-add it just activate it.
             bool exists = context.SemesterSubjects
                 .Any(ss => ss.SemesterId == semesterId
                         && ss.SubjectId == subjectId);

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebUniDiaryTwo.Services;
 
@@ -11,9 +12,11 @@ using WebUniDiaryTwo.Services;
 namespace WebUniDiaryTwo.Migrations
 {
     [DbContext(typeof(UniversityContext))]
-    partial class UniversityContextModelSnapshot : ModelSnapshot
+    [Migration("20240721181053_Thirteenth")]
+    partial class Thirteenth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,7 +97,8 @@ namespace WebUniDiaryTwo.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("GradeValue")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(2)
+                        .HasColumnType("decimal(2,2)");
 
                     b.Property<int>("SemesterUserId")
                         .HasColumnType("int");
@@ -201,7 +205,7 @@ namespace WebUniDiaryTwo.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("SemesterUsers");
+                    b.ToTable("SemesterUser");
                 });
 
             modelBuilder.Entity("WebUniDiaryTwo.Services.Subject", b =>
@@ -367,7 +371,7 @@ namespace WebUniDiaryTwo.Migrations
             modelBuilder.Entity("WebUniDiaryTwo.Services.SemesterUser", b =>
                 {
                     b.HasOne("WebUniDiaryTwo.Services.Semester", "Semester")
-                        .WithMany("SemesterUsers")
+                        .WithMany()
                         .HasForeignKey("SemesterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -429,8 +433,6 @@ namespace WebUniDiaryTwo.Migrations
             modelBuilder.Entity("WebUniDiaryTwo.Services.Semester", b =>
                 {
                     b.Navigation("SemesterSubjects");
-
-                    b.Navigation("SemesterUsers");
                 });
 
             modelBuilder.Entity("WebUniDiaryTwo.Services.SemesterUser", b =>
