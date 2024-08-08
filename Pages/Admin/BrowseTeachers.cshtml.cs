@@ -27,8 +27,7 @@ namespace WebUniDiaryTwo.Pages.Admin
 
             int skip = (currentPage - 1) * pageSize;
 
-            try
-            {
+
                 int teacherRoleId = context.Roles.First(x => x.Name == "Teacher").Id;
 
                 var userIds = context.UserRoles
@@ -45,12 +44,7 @@ namespace WebUniDiaryTwo.Pages.Admin
                                   .Skip(skip)
                                   .Take(pageSize)
                                   .ToList();
-            }
-            catch (Exception ex)
-            {
-                Response.Redirect(CustomRedirect.RoleRedirect("admin") + "?Failure=RolesNotSetUp");
-                return;
-            }
+
         }
 
         public IActionResult OnGetAddTeacher(string email, string password, string firstName, string lastName)

@@ -83,6 +83,11 @@ namespace WebUniDiaryTwo.Pages.Admin
                 {
                     return new JsonResult(new { success = false, message = "User is not a student" });
                 }
+                
+                if (context.SemesterUsers.Any(x => x.UserId == studentId && x.SemesterId == semesterId))
+                {
+                    return new JsonResult(new { success = false, message = "User already studies this Specialty" });
+                }
 
                 var semesterUser = new SemesterUser
                 {
