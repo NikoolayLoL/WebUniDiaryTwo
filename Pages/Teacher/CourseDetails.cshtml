@@ -1,0 +1,170 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Teacher.CourseDetailsModel
+@{
+    ViewData["Title"] = "Course Details";
+}
+
+@Html.Partial("Teacher/_ToolBar")
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="display-4 text-center">@Model.SSubject.Semester.Name - @Model.SSubject.Subject.Name</h2>
+            <p class="lead text-center">@Model.SSubject.Subject.Description</p>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h5>Legend:</h5>
+            <span class="badge bg-success me-2">Exam</span>
+            <span class="badge bg-primary me-2">Work</span>
+            <span class="badge bg-info me-2">Task</span>
+            <span class="badge bg-warning text-dark me-2">Attention</span>
+            <span class="badge bg-secondary me-2">Exercises</span>
+            <span class="badge bg-dark text-white me-2">Extra</span>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Students & Grades</h5>
+                    <ul class="list-group">
+                        @foreach (var SUser in Model.SSubject.Semester.SemesterUsers)
+                        {
+                            <li class="list-group-item">
+                                <h6>@SUser.User.FirstName @SUser.User.LastName</h6>
+
+                                <div class="d-flex flex-wrap mb-3">
+                                    @{
+                                        // Retrieve all grades for the current subject and user
+                                        var gradeGroups = Model.Grades
+                                        .Where(x => x.Subject.Id == Model.SSubject.SubjectId && x.SemesterUserId == SUser.Id)
+                                        .ToList();
+
+                                        // Find and remove the final grade from the grade groups
+                                        var finalGrade = gradeGroups.FirstOrDefault(x => x.Type == "Final");
+                                        if (finalGrade != null)
+                                        {
+                                            gradeGroups.Remove(finalGrade);
+                                        }
+
+                                        // Group the remaining grades by their type and sort by type
+                                        var groupedGrades = gradeGroups
+                                        .GroupBy(g => g.Type)
+                                        .OrderBy(g => g.Key)
+                                        .ToList();
+
+                                        // Display the grouped grades
+                                        foreach (var group in groupedGrades)
+                                        {
+                                            var badgeClass = group.Key switch
+                                            {
+                                                "Exam" => "bg-success text-white",
+                                                "Work" => "bg-primary text-white",
+                                                "Task" => "bg-info text-dark",
+                                                "Attention" => "bg-warning text-dark",
+                                                "Exercises" => "bg-secondary text-white",
+                                                "Extra" => "bg-dark text-white",
+                                                _ => "bg-light text-dark"
+                                            };
+
+                                            <div class="me-4 mb-2">
+                                                @foreach (var grade in group)
+                                                {
+                                                    <span class="badge @badgeClass me-1">@grade.GradeValue</span>
+                                                }
+                                                <span class="badge @badgeClass">@group.Key</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+
+                                <!-- New Grade Input Section with Dropdowns -->
+                                <div class="d-flex mb-3">
+                                    <select id="gradeValue-@SUser.Id" class="form-select me-2" style="width: 130px;">
+                                        <option value="" disabled selected>Select Grade Value</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                    </select>
+
+                                    <select id="gradeType-@SUser.Id" class="form-select me-2" style="width: 180px;">
+                                        <option value="" disabled selected>Select Grade Type</option>
+                                        <option value="Exam">Exam</option>
+                                        <option value="Work">Work</option>
+                                        <option value="Task">Task</option>
+                                        <option value="Attention">Attention</option>
+                                        <option value="Exercises">Exercises</option>
+                                        <option value="Extra">Extra</option>
+                                    </select>
+
+                                    <button class="btn btn-primary" onclick="submitGrade(@SUser.Id, @Model.SSubject.SubjectId)">Submit Grade</button>
+                                </div>
+
+                                <!-- Display Average and Final Grade -->
+                                @try
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div>
+                                            <h6>Average Grade:</h6>
+                                            <span class="badge bg-dark text-white">
+                                                @Math.Round(Model.Grades.Where(g => g.SemesterUserId == SUser.Id && g.SubjectId == @Model.SSubject.SubjectId).Average(g => g.GradeValue), 2)
+                                            </span>
+                                        </div>
+                                        @if (finalGrade != null)
+                                        {
+                                            <div>
+                                                <h6>Final Grade:</h6>
+                                                <span class="badge bg-danger text-white">
+                                                    @finalGrade.GradeValue
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                catch (Exception ex) { }
+
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function submitGrade(semesterUserId, subjectId) {
+            var gradeValue = $(`#gradeValue-${semesterUserId}`).val();
+            var gradeType = $(`#gradeType-${semesterUserId}`).val();
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Teacher/CourseDetails", new { handler = "SubmitGrade" })',
+                data: {
+                    semesterUserId: semesterUserId,
+                    subjectId: subjectId,
+                    gradeValue: gradeValue,
+                    gradeType: gradeType
+                },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+    </script>
+}

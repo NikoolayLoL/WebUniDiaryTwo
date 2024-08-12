@@ -1,0 +1,236 @@
+﻿@page
+@model WebUniDiaryTwo.Pages.Teacher.BrowseSubjectsModel
+@{
+    ViewData["Title"] = "My Subjects";
+}
+
+@Html.Partial("Teacher/_ToolBar")
+
+<div class="container mt-5">
+    <div class="row text-center">
+        <div class="col-md-12">
+            <h1 class="display-4">My Subjects</h1>
+            <p class="lead">Review and manage all the subjects you are assigned to.</p>
+            <hr class="my-4" />
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            <ul class="pagination mb-0">
+                <li class="page-item">
+                    <a class="page-link" href="/Teacher/BrowseSubjects?pageSize=@Model.PageSize&currentPage=@Math.Max(Model.CurrentPage - 1, 1)">Previous</a>
+                </li>
+                @for (int i = 1; i <= @Model.TotalPages; i++)
+                {
+                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" href="/Teacher/BrowseSubjects?pageSize=@Model.PageSize&currentPage=@i">@i</a>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link" href="/Teacher/BrowseSubjects?pageSize=@Model.PageSize&currentPage=@Math.Min(Model.CurrentPage + 1, Model.TotalPages)">Next</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Subjects per page
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/Teacher/BrowseSubjects?pageSize=1&currentPage=1">1</a></li>
+                    <li><a class="dropdown-item" href="/Teacher/BrowseSubjects?pageSize=2&currentPage=1">2</a></li>
+                    <li><a class="dropdown-item" href="/Teacher/BrowseSubjects?pageSize=5&currentPage=1">5</a></li>
+                    <li><a class="dropdown-item" href="/Teacher/BrowseSubjects?pageSize=10&currentPage=1">10</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        @if (Model.SSubjects != null && Model.SSubjects.Any())
+        {
+            @foreach (var subject in Model.SSubjects)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-title text-primary">@subject.Semester.Name - @subject.Subject.Name</h4>
+                            <p class="card-text">@subject.Subject.Description</p>
+                            <a href="/Teacher/CourseDetails?semesterId=@subject.SemesterId&subjectId=@subject.SubjectId" class="btn btn-outline-primary">View Details</a>
+                            <button class="btn btn-outline-primary" onclick="openFormulaModal(@subject.SubjectId)">Change Subject Formula</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-md-12">
+                <div class="alert alert-danger text-center" role="alert">
+                    You are not currently assigned to any subjects.
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="formulaModal" tabindex="-1" aria-labelledby="formulaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formulaModalLabel">Change Subject Grading Formula</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formulaForm">
+                    <input type="hidden" id="subjectId" />
+                    @foreach (var multiplier in new[] { "Exam", "Work", "Task", "Attention", "Exercises", "Extra" })
+                    {
+                        <div class="mb-3">
+                            <label for="slider-@multiplier" class="form-label">@multiplier Multiplier</label>
+                            <input type="range" class="form-range" id="slider-@multiplier" min="0" max="100" value="0" />
+                            <span id="value-@multiplier">0</span>%
+                        </div>
+                    }
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <h5>Total: <span id="totalValue" class="badge bg-secondary">0%</span></h5>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="saveFormula()">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openFormulaModal(subjectId) {
+            $('#subjectId').val(subjectId);
+
+            // AJAX call to pre-fill the modal with existing formula data if it exists
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Teacher/BrowseSubjects", new { handler = "GetFormula" })',
+                data: { subjectId: subjectId },
+                success: function (response) {
+                    if (response.success) {
+                        $('#slider-Exam').val(response.data.exam);
+                        $('#value-Exam').text(response.data.exam);
+
+                        $('#slider-Work').val(response.data.work);
+                        $('#value-Work').text(response.data.work);
+
+                        $('#slider-Task').val(response.data.task);
+                        $('#value-Task').text(response.data.task);
+
+                        $('#slider-Attention').val(response.data.attention);
+                        $('#value-Attention').text(response.data.attention);
+
+                        $('#slider-Exercises').val(response.data.exercises);
+                        $('#value-Exercises').text(response.data.exercises);
+
+                        $('#slider-Extra').val(response.data.extra);
+                        $('#value-Extra').text(response.data.extra);
+                    } else {
+                        resetSliders();
+                    }
+                    updateTotalValue();
+                    $('#formulaModal').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        function resetSliders() {
+            $('#slider-Exam').val(0);
+            $('#value-Exam').text(0);
+
+            $('#slider-Work').val(0);
+            $('#value-Work').text(0);
+
+            $('#slider-Task').val(0);
+            $('#value-Task').text(0);
+
+            $('#slider-Attention').val(0);
+            $('#value-Attention').text(0);
+
+            $('#slider-Exercises').val(0);
+            $('#value-Exercises').text(0);
+
+            $('#slider-Extra').val(0);
+            $('#value-Extra').text(0);
+        }
+
+        function saveFormula() {
+            var subjectId = $('#subjectId').val();
+            var exam = $('#slider-Exam').val();
+            var work = $('#slider-Work').val();
+            var task = $('#slider-Task').val();
+            var attention = $('#slider-Attention').val();
+            var exercises = $('#slider-Exercises').val();
+            var extra = $('#slider-Extra').val();
+
+            // AJAX call to save the formula data
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Teacher/BrowseSubjects", new { handler = "SaveFormula" })',
+                data: {
+                    subjectId: subjectId,
+                    exam: exam,
+                    work: work,
+                    task: task,
+                    attention: attention,
+                    exercises: exercises,
+                    extra: extra
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#formulaModal').modal('hide');
+                        alert('Formula updated successfully!');
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        // Update slider values dynamically and update total value
+        $('.modal-content').on('input', 'input[type="range"]', function () {
+            var multiplier = $(this).attr('id').replace('slider-', '');
+            $('#value-' + multiplier).text($(this).val());
+            updateTotalValue();
+        });
+
+        function updateTotalValue() {
+            var total = parseInt($('#slider-Exam').val()) +
+                parseInt($('#slider-Work').val()) +
+                parseInt($('#slider-Task').val()) +
+                parseInt($('#slider-Attention').val()) +
+                parseInt($('#slider-Exercises').val()) +
+                parseInt($('#slider-Extra').val());
+
+            var totalBadge = $('#totalValue');
+
+            totalBadge.text(total + "%");
+
+            if (total == 100) {
+                totalBadge.removeClass('bg-secondary bg-warning bg-danger').addClass('bg-success');
+            } else if (total > 100) {
+                totalBadge.removeClass('bg-secondary bg-success bg-warning').addClass('bg-danger');
+            } else if (total > 0) {
+                totalBadge.removeClass('bg-secondary bg-success bg-danger').addClass('bg-warning');
+            } else {
+                totalBadge.removeClass('bg-success bg-warning bg-danger').addClass('bg-secondary');
+            }
+        }
+    </script>
+}
