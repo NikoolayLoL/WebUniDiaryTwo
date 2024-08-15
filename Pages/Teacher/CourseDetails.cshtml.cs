@@ -11,6 +11,7 @@ namespace WebUniDiaryTwo.Pages.Teacher
     {
         public SemesterSubject SSubject { get; set; } = new();
         public List<Grade> Grades { get; set; } = new();
+        public Formula Formula { get; set; }
 
         private readonly UniversityContext context;
 
@@ -39,7 +40,9 @@ namespace WebUniDiaryTwo.Pages.Teacher
                     .Where(gr => gr.SubjectId == subjectId)
                     .ToList();
 
-                //Grades = context.Grades.
+                Formula = context.Formulas
+                    .Where(x => x.SubjectId == subjectId)
+                    .First();
 
                 if (SSubject == null)
                 {
@@ -48,8 +51,9 @@ namespace WebUniDiaryTwo.Pages.Teacher
             }
             catch (Exception ex)
             {
-                
             }
+
+
         }
 
         public IActionResult OnGetSubmitGrade(int semesterUserId, int subjectId, decimal gradeValue, string gradeType)
@@ -80,6 +84,35 @@ namespace WebUniDiaryTwo.Pages.Teacher
                     SubjectId = subjectId,
                     GradeValue = gradeValue,
                     Type = gradeType,
+                    DateRecorded = DateTime.Now
+                };
+
+                context.Grades.Add(grade);
+                context.SaveChanges();
+
+                return new JsonResult(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult OnGetSubmitFinalGrade(int semesterUserId, int subjectId, int finalGrade)
+        {
+            if (finalGrade < 2 || finalGrade > 6)
+            {
+                return new JsonResult(new { success = false, message = "Invalid Grade!" });
+            }
+
+            try
+            {
+                var grade = new Grade
+                {
+                    SemesterUserId = semesterUserId,
+                    SubjectId = subjectId,
+                    GradeValue = (decimal) finalGrade,
+                    Type = "Final",
                     DateRecorded = DateTime.Now
                 };
 

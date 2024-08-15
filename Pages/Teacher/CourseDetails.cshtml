@@ -15,6 +15,15 @@
         </div>
     </div>
 
+    @{
+        if (Model.Formula == null)
+        {
+            <div class="d-flex justify-content-center mt-3">
+                <span class="alert alert-danger alert-dismissible">Formula is not set up for this subject!</span>
+            </div>
+        }
+    }
+
     <div class="row">
         <div class="col-md-12 text-center">
             <h5>Legend:</h5>
@@ -104,17 +113,113 @@
                                         <option value="Extra">Extra</option>
                                     </select>
 
-                                    <button class="btn btn-primary" onclick="submitGrade(@SUser.Id, @Model.SSubject.SubjectId)">Submit Grade</button>
+                                    <!-- Buttons wrapped in a div to control alignment -->
+                                    <div class="d-flex">
+                                        <button class="btn btn-primary me-2" onclick="submitGrade(@SUser.Id, @Model.SSubject.SubjectId)" @(finalGrade == null ? "" : "disabled")>
+                                            Submit Grade
+                                        </button>
+                                        <button class="btn btn-warning" onclick="finalGrade(@SUser.Id, @Model.SSubject.SubjectId, this)" @(finalGrade == null ? "" : "disabled")>
+                                            Final Grade
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Display Average and Final Grade -->
                                 @try
                                 {
                                     <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <div>
+                                        <div class="avgGrade">
                                             <h6>Average Grade:</h6>
                                             <span class="badge bg-dark text-white">
-                                                @Math.Round(Model.Grades.Where(g => g.SemesterUserId == SUser.Id && g.SubjectId == @Model.SSubject.SubjectId).Average(g => g.GradeValue), 2)
+                                                @if(Model.Formula != null)
+                                                {
+                                                    decimal gradeExam = 0;
+                                                    int countExam = 0;
+                                                    decimal gradeWork = 0;
+                                                    int countWork = 0;
+                                                    decimal gradeTask = 0;
+                                                    int countTask = 0;
+                                                    decimal gradeAttention = 0;
+                                                    int countAttention = 0;
+                                                    decimal gradeExercises = 0;
+                                                    int countExercises = 0;
+                                                    decimal gradeExtra = 0;
+                                                    int countExtra = 0;
+
+                                                    decimal averageGrade = 0;
+
+                                                    // TODO calculate this in the controller and pass it as key value dictionary object, where the key is the userID
+                                                    foreach (var group in groupedGrades)
+                                                    {
+                                                        @* var gradeType = group.Key; *@
+
+                                                        @foreach (var grade in group)
+                                                        {
+                                                            switch(grade.Type)
+                                                            {
+                                                                case "Exam":
+                                                                    countExam++;
+                                                                    gradeExam += grade.GradeValue;
+                                                                    break;
+                                                                case "Work":
+                                                                    countWork++;
+                                                                    gradeWork += grade.GradeValue;
+                                                                    break;
+                                                                case "Task":
+                                                                    countTask++;
+                                                                    gradeTask += grade.GradeValue;
+                                                                    break;
+                                                                case "Attention":
+                                                                    countAttention++;
+                                                                    gradeAttention += grade.GradeValue;
+                                                                    break;
+                                                                case "Exercises":
+                                                                    countExercises++;
+                                                                    gradeExercises += grade.GradeValue;
+                                                                    break;
+                                                                case "Extra":
+                                                                    countExtra++;
+                                                                    gradeExtra += grade.GradeValue;
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                        }
+                                                    }
+                                                    try
+                                                    {
+                                                        gradeExam = (gradeExam / countExam) * (decimal) Model.Formula.MultiplierExam / 100;
+                                                    }
+                                                    catch (Exception ex) { }
+                                                    try
+                                                    {
+                                                        gradeWork = (gradeWork / countWork) * (decimal) Model.Formula.MultiplierWork / 100;
+                                                    }
+                                                    catch (Exception ex) { }
+                                                    try
+                                                    {
+                                                        gradeTask = (gradeTask / countTask) * (decimal) Model.Formula.MultiplierTask / 100;
+                                                    }
+                                                    catch (Exception ex) { }
+                                                    try
+                                                    {
+                                                        gradeAttention = (gradeAttention / countAttention) * (decimal) Model.Formula.MultiplierAttention / 100;
+                                                    }
+                                                    catch (Exception ex) { }
+                                                    try
+                                                    {
+                                                        gradeExercises = (gradeExercises / countExercises) * (decimal) Model.Formula.MultiplierExercises / 100;
+                                                    }
+                                                    catch (Exception ex) { }
+                                                    try
+                                                    {
+                                                        gradeExtra = (gradeExtra / countExtra) * (decimal) Model.Formula.MultiplierExtra / 100;
+                                                    }
+                                                    catch (Exception ex) { }
+
+                                                    averageGrade = gradeExam + gradeWork + gradeTask + gradeAttention + gradeExercises + gradeExtra;
+                                                    @Math.Round(averageGrade, 2);
+                                                }
                                             </span>
                                         </div>
                                         @if (finalGrade != null)
@@ -137,11 +242,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Final Grade Modal -->
+    <div class="modal fade" id="finalGradeModal" tabindex="-1" aria-labelledby="finalGradeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="finalGradeModalLabel">Set Final Grade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="finalGradeForm">
+                        <div class="mb-3">
+                            <label for="finalGradeInput" class="form-label">Final Grade</label>
+                            <input type="number" class="form-control" id="finalGradeInput" min="2" max="6" required>
+                        </div>
+                        <input type="hidden" id="finalGradeSemesterUserId">
+                        <input type="hidden" id="finalGradeSubjectId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="submitFinalGrade()">Submit Final Grade</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
-        function submitGrade(semesterUserId, subjectId) {
+        function submitGrade(semesterUserId, subjectId)
+        {
             var gradeValue = $(`#gradeValue-${semesterUserId}`).val();
             var gradeType = $(`#gradeType-${semesterUserId}`).val();
 
@@ -166,5 +298,48 @@
                 }
             });
         }
+
+        function finalGrade(semesterUserId, subjectId, element)
+        {
+            var averageGradeValue = Math.round(parseFloat($(element).closest('li').find('.avgGrade span.badge').text().trim()));
+
+            $('#finalGradeInput').val(averageGradeValue);
+            $('#finalGradeSemesterUserId').val(semesterUserId);
+            $('#finalGradeSubjectId').val(subjectId);
+
+            $('#finalGradeModal').modal('show');
+        }
+
+        function submitFinalGrade()
+        {
+            var finalGradeValue = $('#finalGradeInput').val();
+            var semesterUserId = $('#finalGradeSemesterUserId').val();
+            var subjectId = $('#finalGradeSubjectId').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Page("/Teacher/CourseDetails", new { handler = "SubmitFinalGrade" })',
+                data: {
+                    semesterUserId: semesterUserId,
+                    subjectId: subjectId,
+                    finalGrade: finalGradeValue
+                },
+                success: function (response) {
+                    if (response.success)
+                    {
+                        $('#finalGradeModal').modal('hide');
+                        location.reload();
+                    }
+                    else
+                    {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
     </script>
 }
