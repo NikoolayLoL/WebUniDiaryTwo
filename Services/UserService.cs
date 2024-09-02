@@ -29,11 +29,18 @@ namespace WebUniDiaryTwo.Services
             return passwordHasher.HashPassword(null, password);
         }
 
-        public bool VerifyPassword(string password)
+        public bool VerifyPassword(string hashedPassword, string providedPassword)
         {
             var passwordHasher = new PasswordHasher<string>();
-            string hashedPassword = passwordHasher.HashPassword(null, password);
-            return passwordHasher.VerifyHashedPassword(null, hashedPassword, password) == PasswordVerificationResult.Success;
+            try
+            {
+                var result = passwordHasher.VerifyHashedPassword(null, hashedPassword, providedPassword);
+                return result == PasswordVerificationResult.Success;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }

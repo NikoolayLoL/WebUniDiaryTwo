@@ -37,14 +37,6 @@ namespace WebUniDiaryTwo.Pages.Admin
                     .ThenInclude(x => x.Subject)
                     .ToList();
 
-                //Semesters.ForEach(x =>
-                //{
-                //    foreach (var item in x.SemesterSubjects)
-                //    {
-                //        item.
-                //    }
-                //})
-
                 TotalRecords = Semesters.Count;
                 TotalPages = (int) Math.Ceiling(TotalRecords / (double) pageSize);
 
@@ -124,7 +116,7 @@ namespace WebUniDiaryTwo.Pages.Admin
                 if (semester.SemesterLenght != lenght)
                 {
 
-                    var time = DateTime.Now.AddYears(lenght / 2);
+                    var time = semester.StartDate.AddYears(lenght / 2);
                     semester.SemesterLenght = lenght;
                     semester.EndDate = time;
                 }

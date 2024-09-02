@@ -21,20 +21,34 @@
             <div class="d-flex justify-content-center mt-3">
                 <span class="alert alert-danger alert-dismissible">Formula is not set up for this subject!</span>
             </div>
+
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h5>Legend:</h5>
+                    <span class="badge bg-success me-2">Exam</span>
+                    <span class="badge bg-primary me-2">Work</span>
+                    <span class="badge bg-info me-2">Task</span>
+                    <span class="badge bg-warning text-dark me-2">Attention</span>
+                    <span class="badge bg-secondary me-2">Exercises</span>
+                    <span class="badge bg-dark text-white me-2">Extra</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h5>Legend:</h5>
+                    <span class="badge bg-success me-2">Exam @Model.Formula.MultiplierExam%</span>
+                    <span class="badge bg-primary me-2">Work @Model.Formula.MultiplierWork%</span>
+                    <span class="badge bg-info me-2">Task @Model.Formula.MultiplierTask%</span>
+                    <span class="badge bg-warning text-dark me-2">Attention @Model.Formula.MultiplierAttention%</span>
+                    <span class="badge bg-secondary me-2">Exercises @Model.Formula.MultiplierExercises%</span>
+                    <span class="badge bg-dark text-white me-2">Extra @Model.Formula.MultiplierExtra%</span>
+                </div>
+            </div>
         }
     }
-
-    <div class="row">
-        <div class="col-md-12 text-center">
-            <h5>Legend:</h5>
-            <span class="badge bg-success me-2">Exam</span>
-            <span class="badge bg-primary me-2">Work</span>
-            <span class="badge bg-info me-2">Task</span>
-            <span class="badge bg-warning text-dark me-2">Attention</span>
-            <span class="badge bg-secondary me-2">Exercises</span>
-            <span class="badge bg-dark text-white me-2">Extra</span>
-        </div>
-    </div>
 
     <div class="row mt-4">
         <div class="col-md-8 offset-md-2">

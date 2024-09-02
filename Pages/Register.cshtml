@@ -84,7 +84,7 @@
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-sm-4 col-form-label">Role TEST ONLY</label>
+                    <label class="bg-danger col-sm-4 col-form-label">Role TEST ONLY</label>
                     <div class="col-sm-8">
                         <select class="form-select" asp-for="UserDto.Role">
                             <option value="Student">Student</option>
@@ -109,37 +109,6 @@
             </form>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const icon = document.getElementById('bouncingIcon');
-            let x = 0, y = 0;
-            let dx = 2, dy = 2;
-            const speed = 1;
-
-            function animate() {
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
-                const iconRect = icon.getBoundingClientRect();
-                const iconWidth = iconRect.width;
-                const iconHeight = iconRect.height;
-
-                x += dx * speed;
-                y += dy * speed;
-
-                if (x + iconWidth > windowWidth || x < 0) {
-                    dx = -dx;
-                }
-                if (y + iconHeight > windowHeight || y < 0) {
-                    dy = -dy;
-                }
-
-                icon.style.transform = `translate(${x}px, ${y}px)`;
-                requestAnimationFrame(animate);
-            }
-
-            animate();
-        });
     </script>
 </body>
 </html>

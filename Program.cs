@@ -25,6 +25,8 @@ namespace WebUniDiaryTwo
                 options.UseSqlServer(connectionString);
             });
 
+            builder.Services.AddScoped<UserService>();
+
             builder.Services.AddRazorPages()
                 .AddNewtonsoftJson(options =>
                 {

@@ -99,6 +99,7 @@
                 <h5>Total: <span id="totalValue" class="badge bg-secondary">0%</span></h5>
                 <div>
                     <button type="button" class="btn btn-primary" onclick="saveFormula()">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetSliders()">Reset</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -167,7 +168,6 @@
             $('#value-Extra').text(0);
         }
 
-        // TODO add A RESET BUTTON in the MODAL
         function saveFormula() {
             var subjectId = $('#subjectId').val();
             var exam = $('#slider-Exam').val();

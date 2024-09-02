@@ -10,60 +10,6 @@
     <h4 class="text-muted">@Model.SSubject.Semester.Name</h4>
 </div>
 
-@* <div class="container mt-5">
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Student Name</th>
-                <th>Email</th>
-                <th>Current Grades</th>
-                <th>New Grade</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var semesterUser in Model.SSubject.Semester.SemesterUsers)
-            {
-                <tr>
-                    <td>@semesterUser.User.FirstName @semesterUser.User.LastName</td>
-                    <td>@semesterUser.User.Email</td>
-                    <td>
-                        <div class="d-flex flex-wrap">
-                            @{
-                                if (Model.Grades.Count != 0)
-                                {
-                                    foreach (var grade in Model.Grades.Where(g => g.SemesterUserId == semesterUser.Id))
-                                    {
-                                        var badgeClass = grade.GradeValue switch
-                                        {
-                                            6 => "bg-success text-white",
-                                            5 => "bg-primary text-white",
-                                            4 => "bg-info text-dark",
-                                            3 => "bg-warning text-dark",
-                                            2 => "bg-danger text-white",
-                                            _ => "bg-secondary text-white"
-                                        };
-
-                                        <span class="badge @badgeClass m-1">@grade.GradeValue (@grade.Type)</span>
-                                    }
-                                }
-                            }
-                        </div>
-                    </td>
-                    <td>
-                        <input type="text" name="GradeType-@semesterUser.Id" class="form-control mb-2" id="GradeType-@semesterUser.Id" placeholder="Grade Type" />
-                        <input type="number" name="GradeValue-@semesterUser.Id" class="form-control" id="GradeValue-@semesterUser.Id" placeholder="Grade Value" min="2" max="6" />
-                    </td>
-                    <td>
-                        <button class="btn btn-primary" onclick="submitGrade(@semesterUser.Id, @Model.SSubject.Subject.Id)">Submit Grade</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStudentModal">Add Student</button>
-</div> *@
-
 <div class="container mt-5">
     <div class="row">
         @foreach (var semesterUser in Model.SSubject.Semester.SemesterUsers)

@@ -13,12 +13,15 @@ namespace WebUniDiary.Pages
     {
         [BindProperty]
         public UserDto UserDto { get; set; } = new UserDto();
-        private readonly UniversityContext context;
         public string failureMessage = string.Empty;
 
-        public RegisterModel(UniversityContext context)
+        private readonly UniversityContext context;
+        private readonly UserService userContext;
+
+        public RegisterModel(UniversityContext context, UserService userContext)
         {
             this.context = context;
+            this.userContext = userContext;
         }
 
         public void OnGet()
@@ -48,6 +51,7 @@ namespace WebUniDiary.Pages
                 context.SaveChanges();
             }
 
+            UserDto.Password = userContext.EncryptPassword(UserDto.Password).Trim();
             User user = new User()
             {
                 Email = UserDto.Email,
@@ -64,8 +68,7 @@ namespace WebUniDiary.Pages
             }
             catch (Exception ex)
             {
-                failureMessage = ex.Message;
-                failureMessage += ex.InnerException;
+                failureMessage = "This Email is already registered!";
                 return;
             }
 

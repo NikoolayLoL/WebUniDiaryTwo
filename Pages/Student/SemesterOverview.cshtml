@@ -26,6 +26,20 @@
             <tbody>
                 @foreach (var subject in Model.SSubject.OrderBy(x => x.SemesterLenghtId))
                 {
+                    decimal gradeExam = 0;
+                    int countExam = 0;
+                    decimal gradeWork = 0;
+                    int countWork = 0;
+                    decimal gradeTask = 0;
+                    int countTask = 0;
+                    decimal gradeAttention = 0;
+                    int countAttention = 0;
+                    decimal gradeExercises = 0;
+                    int countExercises = 0;
+                    decimal gradeExtra = 0;
+                    int countExtra = 0;
+
+                    decimal averageGrade = 0;
                     <tr>
                         <td>
                             <span class="badge bg-info me-3">@subject.SemesterLenghtId</span>
@@ -46,6 +60,36 @@
                                             }
                                             else
                                             {
+                                                switch (grade.Type)
+                                                {
+                                                    case "Exam":
+                                                        countExam++;
+                                                        gradeExam += grade.GradeValue;
+                                                        break;
+                                                    case "Work":
+                                                        countWork++;
+                                                        gradeWork += grade.GradeValue;
+                                                        break;
+                                                    case "Task":
+                                                        countTask++;
+                                                        gradeTask += grade.GradeValue;
+                                                        break;
+                                                    case "Attention":
+                                                        countAttention++;
+                                                        gradeAttention += grade.GradeValue;
+                                                        break;
+                                                    case "Exercises":
+                                                        countExercises++;
+                                                        gradeExercises += grade.GradeValue;
+                                                        break;
+                                                    case "Extra":
+                                                        countExtra++;
+                                                        gradeExtra += grade.GradeValue;
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+
                                                 var badgeClass = grade.GradeValue switch
                                                 {
                                                     6 => "bg-success text-white",
@@ -68,7 +112,64 @@
                             </div>
                         </td>
                         <td>
+                            @if (Model.Formulas.Any(f => f.SubjectId == subject.Subject.Id))
+                            {
+                                var formula = Model.Formulas.FirstOrDefault(f => f.SubjectId == subject.SubjectId);
+                                try
+                                {
+                                    gradeExam = (gradeExam / countExam) * (decimal) formula.MultiplierExam / 100;
+                                }
+                                catch (Exception ex) { }
+                                try
+                                {
+                                    gradeWork = (gradeWork / countWork) * (decimal) formula.MultiplierWork / 100;
+                                }
+                                catch (Exception ex) { }
+                                try
+                                {
+                                    gradeTask = (gradeTask / countTask) * (decimal) formula.MultiplierTask / 100;
+                                }
+                                catch (Exception ex) { }
+                                try
+                                {
+                                    gradeAttention = (gradeAttention / countAttention) * (decimal) formula.MultiplierAttention / 100;
+                                }
+                                catch (Exception ex) { }
+                                try
+                                {
+                                    gradeExercises = (gradeExercises / countExercises) * (decimal) formula.MultiplierExercises / 100;
+                                }
+                                catch (Exception ex) { }
+                                try
+                                {
+                                    gradeExtra = (gradeExtra / countExtra) * (decimal) formula.MultiplierExtra / 100;
+                                }
+                                catch (Exception ex) { }
 
+                                averageGrade = gradeExam + gradeWork + gradeTask + gradeAttention + gradeExercises + gradeExtra;
+                                averageGrade = @Math.Round(averageGrade, 2);
+                                var badgeClass = string.Empty;
+
+                                if (averageGrade >= (decimal) 5)
+                                {
+                                    badgeClass = "bg-success text-white";
+                                }
+                                else if (averageGrade >= (decimal) 3.5)
+                                {
+                                    badgeClass = "bg-warning text-dark";
+                                }
+                                else
+                                {
+                                    badgeClass = "bg-danger text-white";
+
+                                }
+
+                                <span class="badge m-1 @badgeClass">@averageGrade</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info">No formula yet</span>
+                            }
                         </td>
                         <td>
                             <div class="d-flex flex-wrap">
@@ -90,4 +191,3 @@
         </table>
     </div>
 </div>
-

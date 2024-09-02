@@ -10,9 +10,9 @@ namespace WebUniDiaryTwo.Pages.Student
 {
     public class SemesterOverviewModel : PageModel
     {
-        //public Dictionary<int> Grades { get; set; }
         public SemesterUser SUser { get; set; } = new();
         public List<SemesterSubject> SSubject { get; set; } = new();
+        public List<Formula> Formulas { get; set; } = new();
 
         private readonly UniversityContext _context;
 
@@ -42,6 +42,11 @@ namespace WebUniDiaryTwo.Pages.Student
                     .Include(ss => ss.Subject)
                     .ThenInclude (ss => ss.Grades)
                     .ToList();
+
+                var subjectIds = SSubject.Select(subject => subject.Subject.Id).ToList();
+                Formulas = _context.Formulas
+                    .Where(f => subjectIds.Contains(f.SubjectId))
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -49,15 +54,6 @@ namespace WebUniDiaryTwo.Pages.Student
                 Response.Redirect(CustomRedirect.RoleRedirect("student") + "/?Failure=issueWithSemester");
                 return;
             }
-
-            foreach (var subject in SSubject.OrderBy(x => x.SemesterLenghtId))
-            {
-                foreach (var grade in subject.Subject.Grades.Where(g => g.SemesterUserId == SUser.Id))
-                {
-                    //subject.SubjectId;
-                }
-            }
-
         }
     }
 }

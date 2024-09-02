@@ -9,7 +9,6 @@ namespace WebUniDiaryTwo.Services
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
-        public DbSet<Discipline> Specialties { get; set; }
         public DbSet<Semester> Semesters { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<Grade> Grades { get; set; }
@@ -77,7 +76,6 @@ namespace WebUniDiaryTwo.Services
         }
     }
 
-    // User Model
     public class User
     {
         public int Id { get; set; }
@@ -113,14 +111,6 @@ namespace WebUniDiaryTwo.Services
         public User User { get; set; }
         public int RoleId { get; set; }
         public Role Role { get; set; }
-    }
-
-    public class Discipline
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public bool IsRetired { get; set; }
     }
 
     public class Semester

@@ -13,34 +13,42 @@ namespace WebUniDiaryTwo.Pages
     {
         private readonly ILogger<IndexModel> _logger;
         private readonly UniversityContext context;
+        private readonly UserService userContext;
 
         [BindProperty]
         public UserDto userDto { get; set; } = new UserDto();
+        public string failureMessage = string.Empty;
 
-        public IndexModel(UniversityContext context, ILogger<IndexModel> logger)
+        public IndexModel(UniversityContext context, ILogger<IndexModel> logger, UserService userContext)
         {
             this.context = context;
             _logger = logger;
+            this.userContext = userContext;
         }
 
         public void OnGet()
         {
-
         }
 
         public void OnPost()
         {
-            var result = context.Users.FirstOrDefault(u => u.Email == userDto.Email && u.Password == userDto.Password);
+            var result = context.Users.FirstOrDefault(u => u.Email == userDto.Email);
 
             if (null == result)
             {
+                failureMessage = "Incorrect Credentials!";
+                return;
+            }
+
+            if (!userContext.VerifyPassword(result.Password, userDto.Password.Trim()))
+            {
+                failureMessage = "Incorrect Password!";
                 return;
             }
 
             User user = result;
             CookieRepository cookie = new CookieRepository(user.Id);
 
-            //string role = user.UserRoles.FirstOrDefault()?.Role.Name;
             UserRole userRole = context.UserRoles.First(u => u.UserId == user.Id);
             Role role = context.Roles.Find(userRole.RoleId)!;
 
@@ -53,6 +61,5 @@ namespace WebUniDiaryTwo.Pages
 
             Response.Redirect(CustomRedirect.RoleRedirect(role.Name));
         }
-
     }
 }
